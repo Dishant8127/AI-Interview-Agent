@@ -2,14 +2,14 @@ from langchain_core.prompts import PromptTemplate
 
 from llm.nvidia_llm import get_llm
 
-from prompts.interview_prompt import QUESTION_PROMPT
+from prompts.interview_prompt import (
+    QUESTION_PROMPT
+)
 
-from agents.resume_agent import analyze_resume
+import re
 
 
-def generate_questions():
-
-    context = analyze_resume()
+def generate_questions(context):
 
     prompt = PromptTemplate(
         template=QUESTION_PROMPT,
@@ -24,4 +24,11 @@ def generate_questions():
         }
     )
 
-    return response.content
+    text = response.content
+
+    questions = re.findall(
+        r"Q\d+\.\s.*",
+        text
+    )
+
+    return questions

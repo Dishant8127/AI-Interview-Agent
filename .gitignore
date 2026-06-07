@@ -1,8 +1,9 @@
 venv/
 .env
 
-# Python bytecode and cache folders
 __pycache__/
 **/__pycache__/
 *.py[cod]
 *.pyo
+
+data/

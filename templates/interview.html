@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>AI Interview Agent</title>
+
+</head>
+
+<body>
+
+    <h1>
+
+        Question {{ question_number }}
+
+    </h1>
+
+    <h3>
+
+        {{ question }}
+
+    </h3>
+
+    <form
+        action="/submit-answer"
+        method="post">
+
+        <textarea
+            name="answer"
+            rows="10"
+            cols="100"
+            required>
+        </textarea>
+
+        <br><br>
+
+        <button type="submit">
+
+            Submit Answer
+
+        </button>
+
+    </form>
+
+    <script>
+
+        history.pushState(
+            null,
+            null,
+            location.href
+        );
+
+        window.onpopstate = function () {
+
+            history.go(1);
+
+        };
+
+    </script>
+
+</body>
+
+</html>

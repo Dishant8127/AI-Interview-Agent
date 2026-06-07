@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Interview Result</title>
+
+    <style>
+
+        body{
+            font-family: Arial, sans-serif;
+            margin:40px;
+        }
+
+        .score-box{
+            padding:15px;
+            border:1px solid #ccc;
+            margin-bottom:20px;
+        }
+
+        pre{
+            white-space:pre-wrap;
+            word-wrap:break-word;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>
+        Interview Completed
+    </h1>
+
+    <div class="score-box">
+
+        <h2>
+            Overall Interview Score :
+            {{ overall_score }}/10
+        </h2>
+
+        <h2>
+            Decision :
+            {{ decision }}
+        </h2>
+
+    </div>
+
+    <hr>
+
+    {% for item in answers %}
+
+        <h2>
+
+            {{ item.question }}
+
+        </h2>
+
+        <b>Your Answer:</b>
+
+        <pre>
+{{ item.answer }}
+        </pre>
+
+        <b>Evaluation:</b>
+
+        <pre>
+{{ item.evaluation }}
+        </pre>
+
+        <hr>
+
+    {% endfor %}
+
+    <h2>
+        Final Interview Report
+    </h2>
+
+    <pre>
+{{ final_result }}
+    </pre>
+
+    <br>
+
+    <a href="/reset">
+
+        <button>
+
+            Go To Home
+
+        </button>
+
+    </a>
+
+</body>
+
+</html>

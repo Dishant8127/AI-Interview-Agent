@@ -1,4 +1,5 @@
 from rag.retriever import get_retriever
+
 from llm.nvidia_llm import get_llm
 
 
@@ -7,7 +8,7 @@ def analyze_resume():
     retriever = get_retriever()
 
     docs = retriever.invoke(
-        "Extract Skills, Projects, and Experience from the candidate's resume."
+        "Extract skills, projects, experience and candidate details."
     )
 
     context = "\n".join(
@@ -17,19 +18,15 @@ def analyze_resume():
     prompt = f"""
     You are an expert Resume Analyzer.
 
-    Your task is to analyze the resume and extract only the information available in the resume.
-
     Resume Context:
     {context}
 
-    Instructions:
-    1. Extract all technical skills.
-    2. Extract all project names.
-    3. Extract work experience details.
-    4. Do not add any information that is not present in the resume.
-    5. Return the response in the exact format below.
+    Extract only information available in the resume.
 
-    Format:
+    Return EXACTLY in this format:
+
+    Candidate Name:
+    Dishant Vekariya
 
     Skills:
     - Skill 1
@@ -45,9 +42,15 @@ def analyze_resume():
     - Experience 1
     - Experience 2
 
-    Answer:
+    IMPORTANT:
+    - Keep each section on a new line.
+    - Each skill must be on a separate line.
+    - Each project must be on a separate line.
+    - Each experience must be on a separate line.
+    - Do not return everything in one paragraph.
+    - Do not use markdown.
+    - Return plain text only.
     """
-
 
     llm = get_llm()
 
