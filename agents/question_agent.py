@@ -2,9 +2,7 @@ from langchain_core.prompts import PromptTemplate
 
 from llm.nvidia_llm import get_llm
 
-from prompts.interview_prompt import (
-    QUESTION_PROMPT
-)
+from prompts.interview_prompt import QUESTION_PROMPT
 
 import re
 

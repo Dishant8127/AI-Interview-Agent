@@ -1,10 +1,4 @@
-from fastapi import (
-    FastAPI,
-    Request,
-    UploadFile,
-    File,
-    Form
-)
+from fastapi import FastAPI,Request,UploadFile,File,Form
 
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -15,31 +9,18 @@ import time
 
 from agents.resume_agent import analyze_resume
 from agents.question_agent import generate_questions
-from agents.evaluation_agent import (
-    evaluate_interview,
-    evaluate_answer,
-    calculate_interview_score
-)
+from agents.evaluation_agent import evaluate_interview, evaluate_answer, calculate_interview_score
 
 from rag.pdf_loader import load_pdf
 from rag.text_splitter import split_documents
 
+from rag.vector_store import create_vector_store,clear_index
+from agents.selection_agent import get_selection_result
 
-
-from rag.vector_store import (
-    create_vector_store,
-    clear_index
-)
-
-# --------------------------------------------------
-# FastAPI Setup
-# --------------------------------------------------
 
 app = FastAPI()
 
-templates = Jinja2Templates(
-    directory="templates"
-)
+templates = Jinja2Templates(directory="templates")
 
 app.mount(
     "/static",
@@ -47,9 +28,6 @@ app.mount(
     name="static"
 )
 
-# --------------------------------------------------
-# Global Variables
-# --------------------------------------------------
 
 questions = []
 
@@ -61,11 +39,7 @@ resume_analysis = ""
 
 interview_completed = False
 
-MAX_QUESTIONS = 5
-
-# --------------------------------------------------
-# Home Page
-# --------------------------------------------------
+MAX_QUESTIONS = 15
 
 @app.get("/")
 def home(request: Request):
@@ -81,76 +55,27 @@ def home(request: Request):
         context={}
     )
 
-# --------------------------------------------------
-# Upload Resume
-# --------------------------------------------------
 
 @app.post("/upload")
-async def upload_resume(
-    request: Request,
-    resume: UploadFile = File(...)
-):
+async def upload_resume(request: Request,resume: UploadFile = File(...)):
 
     global resume_analysis
 
-    os.makedirs(
-        "data/resumes",
-        exist_ok=True
-    )
+    file_path = (f"data/resumes/{resume.filename}")
 
-    file_path = (
-        f"data/resumes/{resume.filename}"
-    )
-
-    with open(
-        file_path,
-        "wb"
-    ) as file:
+    with open(file_path, "wb") as file:
 
         content = await resume.read()
 
         file.write(content)
 
-    # -----------------------------------
-    # Load PDF
-    # -----------------------------------
+    documents = load_pdf(file_path)
 
-    documents = load_pdf(
-        file_path
-    )
-
-    # -----------------------------------
-    # Chunking
-    # -----------------------------------
-
-    chunks = split_documents(
-        documents
-    )
-
-    # -----------------------------------
-    # Clear Old Resume Data
-    # -----------------------------------
+    chunks = split_documents(documents)
 
     clear_index()
-
-    # -----------------------------------
-    # Store New Resume
-    # -----------------------------------
-
-    create_vector_store(
-        chunks
-    )
-
-    # -----------------------------------
-    # Wait for Pinecone indexing
-    # -----------------------------------
-
+    create_vector_store(chunks)
     time.sleep(5)
-
-    # -----------------------------------
-    # Analyze Resume
-    # -----------------------------------
-
     resume_analysis = analyze_resume()
 
     return templates.TemplateResponse(
@@ -161,14 +86,8 @@ async def upload_resume(
         }
     )
 
-# --------------------------------------------------
-# Start Interview
-# --------------------------------------------------
-
 @app.get("/start-interview")
-def start_interview(
-request: Request
-):
+def start_interview(request: Request):
 
     global questions
     global current_question_index
@@ -179,15 +98,11 @@ request: Request
 
     candidate_answers.clear()
 
-    questions = generate_questions(
-        resume_analysis
-    )
+    questions = generate_questions(resume_analysis)
 
     if len(questions) == 0:
 
-        questions = [
-            "Q1. Tell me about yourself."
-        ]
+        questions = ["Q1. Tell me about yourself."]
 
     return templates.TemplateResponse(
         request=request,
@@ -199,27 +114,15 @@ request: Request
     )
 
 
-# --------------------------------------------------
-# Submit Answer
-# --------------------------------------------------
-
 @app.post("/submit-answer")
-def submit_answer(
-request: Request,
-answer: str = Form(...)
-):
+def submit_answer(request: Request,answer: str = Form(...)):
 
 
     global current_question_index
     global interview_completed
 
-    current_question = questions[
-        current_question_index
-    ]
+    current_question = questions[current_question_index ]
 
-    # -----------------------------
-    # Store Answer Only
-    # -----------------------------
 
     candidate_answers.append(
         {
@@ -230,17 +133,11 @@ answer: str = Form(...)
 
     current_question_index += 1
 
-    # -----------------------------
-    # Interview Completed
-    # -----------------------------
 
     if current_question_index >= MAX_QUESTIONS:
 
         interview_completed = True
 
-        # --------------------------------
-        # Evaluate All Answers At End
-        # --------------------------------
 
         for item in candidate_answers:
 
@@ -251,38 +148,11 @@ answer: str = Form(...)
 
             item["evaluation"] = evaluation
 
-        # --------------------------------
-        # Calculate Final Score
-        # --------------------------------
 
-        overall_score = calculate_interview_score(
-            candidate_answers
-        )
+        overall_score = calculate_interview_score(candidate_answers)
 
-        # --------------------------------
-        # Decision
-        # --------------------------------
-
-        if overall_score >= 8:
-
-            decision = "SELECTED"
-
-        elif overall_score >= 6:
-
-            decision = "BORDERLINE"
-
-        else:
-
-            decision = "NOT SELECTED"
-
-        # --------------------------------
-        # Final Feedback
-        # --------------------------------
-
-        final_result = evaluate_interview(
-            resume_analysis,
-            candidate_answers
-        )
+        decision = get_selection_result(overall_score)
+        final_result = evaluate_interview( resume_analysis,candidate_answers)
 
         return templates.TemplateResponse(
             request=request,
@@ -295,13 +165,8 @@ answer: str = Form(...)
             }
         )
 
-    # -----------------------------
-    # Next Question
-    # -----------------------------
 
-    next_question = questions[
-        current_question_index
-    ]
+    next_question = questions[ current_question_index]
 
     return templates.TemplateResponse(
         request=request,
@@ -313,16 +178,12 @@ answer: str = Form(...)
         }
     )
 
-# --------------------------------------------------
-# Reset Interview
-# --------------------------------------------------
 
 @app.get("/reset")
 def reset():
 
     global questions
     global current_question_index
-    # global total_score
     global candidate_answers
     global interview_completed
     global resume_analysis
@@ -330,8 +191,6 @@ def reset():
     questions = []
 
     current_question_index = 0
-
-    # total_score = 0
 
     candidate_answers.clear()
 

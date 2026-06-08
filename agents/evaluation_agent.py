@@ -21,38 +21,7 @@ import re
 # Question Evaluation
 # ---------------------------------
 
-# def evaluate_answer(
-#     question,
-#     answer
-# ):
-
-#     prompt = PromptTemplate(
-#         template=EVALUATION_PROMPT,
-#         input_variables=[
-#             "question",
-#             "answer"
-#         ]
-#     )
-
-#     chain = prompt | get_llm()
-
-#     response = chain.invoke(
-#         {
-#             "question": question,
-#             "answer": answer
-#         }
-#     )
-
-#     return response.content
-
-
-
-def evaluate_answer(
-    question,
-    answer
-):
-
-    # Q1 Special Evaluation
+def evaluate_answer(question,answer):
 
     if "tell me about yourself" in question.lower():
 
@@ -88,10 +57,6 @@ def evaluate_answer(
 
 
 
-# ---------------------------------
-# Final Feedback
-# ---------------------------------
-
 def generate_final_feedback(
     qa_data
 ):
@@ -114,9 +79,6 @@ def generate_final_feedback(
     return response.content
 
 
-# ---------------------------------
-# Calculate Score
-# ---------------------------------
 
 def calculate_interview_score(
     candidate_answers
@@ -160,9 +122,6 @@ def calculate_interview_score(
     return average_10
 
 
-# ---------------------------------
-# Final Interview Evaluation
-# ---------------------------------
 
 def evaluate_interview(
     resume_analysis,
