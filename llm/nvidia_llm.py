@@ -6,7 +6,8 @@ from config.settings import NVIDIA_API_KEY
 def get_llm():
 
     llm = ChatNVIDIA(
-        model="meta/llama-3.3-70b-instruct",
+        # model="meta/llama-3.3-70b-instruct",
+        model="meta/llama-3.1-8b-instruct",
         api_key=NVIDIA_API_KEY,
         temperature=0.3,
     )

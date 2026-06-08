@@ -39,7 +39,7 @@ resume_analysis = ""
 
 interview_completed = False
 
-MAX_QUESTIONS = 15
+MAX_QUESTIONS = 5
 
 @app.get("/")
 def home(request: Request):
